@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>WebRTC-Demo</title>
+</head>
+<body>
+<!-- <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.min.js"></script>
+<script>
+var socket = io('http://localhost:3000'); // 创建连接
+if ( socket ) {
+		socket.on('message', (msg)=>{ // message 跟 服务的一致。接收信息
+				console.log('message:' ,msg)
+		})
+}
+
+// 发送信息
+socket.emit('message', 'hi');
+</script>
+</body>
+</html>
