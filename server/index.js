@@ -56,7 +56,8 @@ io.sockets.on('connection', socket => {
 
   // 接收信息
   socket.on('message', (room, data) => {
-    console.log('room:', room, 'data:', data)
+    // console.log('room:', room, 'data:', data)
+		socket.to(room).emit('message', room, data)
   })
 
   // 用户加入房间
@@ -69,7 +70,8 @@ io.sockets.on('connection', socket => {
       if (users) {
         // 通知其他人进房间
         socket.to(room).emit('otherjoin', room, socket.id);
-      } 
+      }
+			socket.emit('joined', room, socket.id)
     } else {
       // 房间已满
       socket.leave(room)
