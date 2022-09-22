@@ -30,6 +30,10 @@ const httpServer = app.listen(port, () => {
 })
 
 
+/**
+ * socket.io 开启跨域
+ * 
+ */
 const io = socketIo(httpServer, {
 	cors: {
     origin: "http://127.0.0.1:5500",
@@ -39,6 +43,10 @@ const io = socketIo(httpServer, {
 });
 
 // 连接
+/**
+ * socket.broadcast.emit("an event", { some: "data" }) 所有人都会收到, 除了自己
+ * socket.emit("an event", { some: "data" }) 当前连接会收到信息
+ */
 io.sockets.on('connection', socket => {
   // 断开连接
   socket.on("disconnect", (reason) => {
@@ -57,23 +65,34 @@ io.sockets.on('connection', socket => {
   // 接收信息
   socket.on('message', (room, data) => {
     // console.log('room:', room, 'data:', data)
+    /**
+     * 接收信息，并且把信息发给同一个房间（room）的其他人
+     */
 		socket.to(room).emit('message', room, data)
   })
 
   // 用户加入房间
   socket.on('join', (room, data) => {
+    /**
+     *  获取当前房间room的连接数
+     *   io.sockets.adapter.rooms  获取当前连接房间总数
+     * 
+     */
     const myRooms = io.sockets.adapter.rooms.get(room);
     const users = myRooms ? myRooms.size : 0;
     // 房间未满
     if (users <= MAX_COUNT) {
+      // 加入房间 room
       socket.join(room)
       if (users) {
-        // 通知其他人进房间
+        // 通知房间room其他人,有人加入房间
         socket.to(room).emit('otherjoin', room, socket.id);
       }
 			socket.emit('joined', room, socket.id)
+      
+      socket.broadcast.emit('system', '系统信息')
     } else {
-      // 房间已满
+      // 房间已满,离开当前连接房间
       socket.leave(room)
       socket.emit('full', room, socket.id)
     }
@@ -84,7 +103,7 @@ io.sockets.on('connection', socket => {
     const myRooms = io.sockets.adapter.rooms.get(room);
     const users = myRooms ? myRooms.size : 0;
     if (users) {
-      // 通知其他人离开房间
+      // 通知房间room其他人离开
       socket.to(room).emit('bye', room, socket.id);
     }
     // 通知用户服务器已处理

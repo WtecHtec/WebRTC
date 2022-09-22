@@ -24,6 +24,12 @@ if ( socket ) {
     socket.on('otherjoin', (room, id) => {
       console.log('otherjoin:' ,room, id)
     })
+    socket.on('joined', (room, id) => {
+      console.log('joined:' ,room, id)
+    })
+    socket.on('system', (room, id) => {
+      console.log('system:' ,room, id)
+    })
 }
 
 // 发送信息

@@ -5,10 +5,15 @@ const btnConn = document.getElementById('connserver')
 const btnLeave = document.getElementById('leave')
 const offer = document.getElementById('offer')
 const answer = document.getElementById('answer')
+
+/**
+ * turn服务器， NAT穿透
+ *  RTCPeerConnection 配置
+ */
 const pcConfig = {
 	iceServers: [
 		{
-			urls: 'turn:1.116.139.149:3478',
+			urls: 'turn:1.16.39.49:3478',
 			username: 'herzshen',
 			credential: 'qwer8748',
 		}
@@ -31,12 +36,17 @@ function sendMessage(roomId, data) {
 	}
 }
 
+/***
+ * 连接 socket.io 发送信息、视频数据
+ */
 function conn() {
+
 	socket = io.connect('http://localhost:3000')
 	// 加入房间成功
 	socket.on('joined', (roomId, id) => {
 		state = 'joined'
 		console.log('joined', roomId, id)
+    // 初始化webrtc
 		createPeerConnection();
 		bindTracks();
 		btnConn.disabled = true
@@ -117,6 +127,10 @@ function connSignalServer() {
 	return true
 }
 
+/**
+ * 连接socket.io 服务，并将渲染本地多媒体
+ * @param {*} stream 
+ */
 function getMediaStream(stream) {
 	if (localStream) {
 		stream.getAudioTracks().forEach(track => {
@@ -137,6 +151,9 @@ function handleAnswerError(error) {
 	console.error(error)
 }
 
+/**
+ * 连接本地多媒体设备，并且连接
+ */
 function start() {
 	if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 		const constraints = {
@@ -151,6 +168,10 @@ function start() {
 	}
 }
 
+/**
+ * 获取远程 track 数据，并视频渲染
+ * @param {*} e 
+ */
 function getRemoteStream(e) {
 	remoteStream = e.streams[0]
 	remoteVideo.srcObject = e.streams[0]
@@ -175,7 +196,10 @@ function getOffer(desc) {
 	offerdesc =desc
 	sendMessage(roomId, offerdesc)
 }
-
+/**
+ * 创建 RTCPeerConnection 
+ * 获取sdp数据，并且发送socket.Io
+ */
 function createPeerConnection() {
 	if (!pc) {
 		pc = new RTCPeerConnection(pcConfig)
@@ -197,7 +221,9 @@ function createPeerConnection() {
 	}
 	return
 }
-
+/**
+ * RTCPeerConnection 对象添加 Track 数据
+ */
 function bindTracks() {
 	if (pc && localStream) {
 		localStream.getTracks().forEach( track => {
@@ -205,7 +231,9 @@ function bindTracks() {
 		})
 	}
 }
-
+/** 
+ * 当已连接状态， 拨打webrtc
+*/
 function call() {
 	if (state === 'joined_conn') {
 		const offerOptions = {
@@ -213,6 +241,7 @@ function call() {
 			offerToReceiveVideo: 1
 		}
 		if (pc) {
+      // 创建 RTCPeerConnection Offer，并且发送 sdp 数据到远程
 			pc.createOffer(offerOptions).then(getOffer).catch(handleOfferError)
 		}
 		console.log('call ===', pc)
@@ -220,6 +249,9 @@ function call() {
 	}
 }
 
+/**
+ *  关闭 RTCPeerConnection 连接
+ */
 function handup() {
 	if (pc) {
 		offerdesc = null
@@ -228,6 +260,9 @@ function handup() {
 	}
 }
 
+/**
+ * 关闭本地媒体信息
+ */
 function closeLocalMedia() {
 	if (localStream) {
 		localStream.getTracks().forEach(track => {
